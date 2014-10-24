@@ -18,7 +18,6 @@ NSString * const kYelpTokenSecret = @"mqtKIxMIR4iBtBPZCmCLEb-Dz3Y";
 
 @interface MainViewController ()<UITableViewDataSource,UITableViewDelegate>
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
-
 @property (nonatomic, strong) YelpClient *client;
 @property (nonatomic,strong) NSArray *businesses;
 
@@ -28,44 +27,80 @@ NSString * const kYelpTokenSecret = @"mqtKIxMIR4iBtBPZCmCLEb-Dz3Y";
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
-    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
-    if (self) {
-        // You can register for Yelp API keys here: http://www.yelp.com/developers/manage_api_keys
-        self.client = [[YelpClient alloc] initWithConsumerKey:kYelpConsumerKey consumerSecret:kYelpConsumerSecret accessToken:kYelpToken accessSecret:kYelpTokenSecret];
-        
-        [self.client searchWithTerm:@"Thai" success:^(AFHTTPRequestOperation *operation, id response) {
-            NSLog(@"response: %@", response);
-          
-          NSArray *businessDictionaries = response[@"businesses"];
-          
-          self.businesses = [Business businessesWithDictionaries:businessDictionaries];
-          
-          [self.tableView reloadData];
-          
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"error: %@", [error description]);
-        }];
-    }
-    return self;
+  self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+  if (self) {
+    // You can register for Yelp API keys here: http://www.yelp.com/developers/manage_api_keys
+    self.client = [[YelpClient alloc] initWithConsumerKey:kYelpConsumerKey consumerSecret:kYelpConsumerSecret accessToken:kYelpToken accessSecret:kYelpTokenSecret];
+    
+    [self.client searchWithTerm:@"Thai" success:^(AFHTTPRequestOperation *operation, id response) {
+      NSLog(@"response: %@", response);
+      
+      NSArray *businessDictionaries = response[@"businesses"];
+      
+      self.businesses = [Business businessesWithDictionaries:businessDictionaries];
+      
+      [self.tableView reloadData];
+      
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+      NSLog(@"error: %@", [error description]);
+    }];
+  }
+  return self;
 }
 
 - (void)viewDidLoad
 {
-    [super viewDidLoad];
+  [super viewDidLoad];
+  UITapGestureRecognizer *gestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(hideKeyboard)];
+  [self.tableView addGestureRecognizer:gestureRecognizer];
+  gestureRecognizer.cancelsTouchesInView = NO;
+  
+  self.searchBar = [[UISearchBar alloc] init];
+  [self.searchBar sizeToFit];
+  
+  self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]
+                                           initWithTitle:@"Filter"
+                                           style:UIBarButtonItemStylePlain
+                                           target:self
+                                           action:@selector(Filter:)];
+  
+  
+  self.searchBar.delegate = self;
+  [self.searchBar setPlaceholder:@"Search..."];
+  //[self.searchBar setShowsCancelButton:YES animated:YES];
+  
+  
+  self.navigationItem.titleView = self.searchBar;
+  //self.navigationItem.titleView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+  
   self.tableView.delegate =self;
   self.tableView.dataSource = self;
   
   [self.tableView registerNib:[UINib nibWithNibName:@"BusinessCell" bundle:nil] forCellReuseIdentifier:@"BusinessCell"];
   
   self.tableView.rowHeight = UITableViewAutomaticDimension;
-  self.title = @"Yelp";
-    // Do any additional setup after loading the view from its nib.
+  //self.title = @"Yelp";
+  // Do any additional setup after loading the view from its nib.
+}
+
+- (void) hideKeyboard {
+  if([self.searchBar isFirstResponder]){
+    [self.view endEditing:YES];
+    [self.searchBar resignFirstResponder];
+  }
+}
+
+
+- (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar
+{
+  [searchBar resignFirstResponder];
+  // Do the search...
 }
 
 - (void)didReceiveMemoryWarning
 {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+  [super didReceiveMemoryWarning];
+  // Dispose of any resources that can be recreated.
 }
 
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{

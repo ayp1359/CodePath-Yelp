@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
-@interface MainViewController : UIViewController
+@interface MainViewController : UIViewController<UISearchBarDelegate>
+
+@property (strong, nonatomic) UISearchBar *searchBar;
 
 @end
