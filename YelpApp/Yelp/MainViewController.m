@@ -10,16 +10,18 @@
 #import "YelpClient.h"
 #import "Business.h"
 #import "BusinessCell.h"
+#import "FiltersViewController.h"
 
 NSString * const kYelpConsumerKey = @"vxKwwcR_NMQ7WaEiQBK_CA";
 NSString * const kYelpConsumerSecret = @"33QCvh5bIF5jIHR5klQr7RtBDhQ";
 NSString * const kYelpToken = @"uRcRswHFYa1VkDrGV6LAW2F8clGh5JHV";
 NSString * const kYelpTokenSecret = @"mqtKIxMIR4iBtBPZCmCLEb-Dz3Y";
 
-@interface MainViewController ()<UITableViewDataSource,UITableViewDelegate>
+@interface MainViewController ()<UITableViewDataSource,UITableViewDelegate,FiltersDelegate>
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (nonatomic, strong) YelpClient *client;
 @property (nonatomic,strong) NSArray *businesses;
+@property (nonatomic, strong) NSMutableDictionary *filters;
 
 @end
 
@@ -29,23 +31,26 @@ NSString * const kYelpTokenSecret = @"mqtKIxMIR4iBtBPZCmCLEb-Dz3Y";
 {
   self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
   if (self) {
-    // You can register for Yelp API keys here: http://www.yelp.com/developers/manage_api_keys
+
     self.client = [[YelpClient alloc] initWithConsumerKey:kYelpConsumerKey consumerSecret:kYelpConsumerSecret accessToken:kYelpToken accessSecret:kYelpTokenSecret];
     
-    [self.client searchWithTerm:@"Thai" success:^(AFHTTPRequestOperation *operation, id response) {
-      NSLog(@"response: %@", response);
-      
-      NSArray *businessDictionaries = response[@"businesses"];
-      
-      self.businesses = [Business businessesWithDictionaries:businessDictionaries];
-      
-      [self.tableView reloadData];
-      
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-      NSLog(@"error: %@", [error description]);
-    }];
+    self.filters = [[NSMutableDictionary alloc] initWithDictionary:@{@"term":@"food", @"location":@"San Francisco"}];
+    
+    [self performSearch];
+    
   }
   return self;
+}
+
+-(void)performSearch{
+  [self.client search:self.filters success:^(AFHTTPRequestOperation *operation, id response) {
+    NSArray *businessDictionaries = response[@"businesses"];
+    self.businesses = [Business businessesWithDictionaries:businessDictionaries];
+    [self.tableView reloadData];
+    
+  } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+    NSLog(@"error: %@", [error description]);
+  }];
 }
 
 - (void)viewDidLoad
@@ -62,16 +67,15 @@ NSString * const kYelpTokenSecret = @"mqtKIxMIR4iBtBPZCmCLEb-Dz3Y";
                                            initWithTitle:@"Filter"
                                            style:UIBarButtonItemStylePlain
                                            target:self
-                                           action:@selector(Filter:)];
+                                           action:@selector(onFilter)];
   
   
   self.searchBar.delegate = self;
   [self.searchBar setPlaceholder:@"Search..."];
-  //[self.searchBar setShowsCancelButton:YES animated:YES];
-  
-  
+  self.searchBar.barTintColor = [UIColor whiteColor];
+  self.searchBar.backgroundColor = [UIColor clearColor];
+  self.searchBar.translucent = YES;
   self.navigationItem.titleView = self.searchBar;
-  //self.navigationItem.titleView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
   
   self.tableView.delegate =self;
   self.tableView.dataSource = self;
@@ -79,11 +83,28 @@ NSString * const kYelpTokenSecret = @"mqtKIxMIR4iBtBPZCmCLEb-Dz3Y";
   [self.tableView registerNib:[UINib nibWithNibName:@"BusinessCell" bundle:nil] forCellReuseIdentifier:@"BusinessCell"];
   
   self.tableView.rowHeight = UITableViewAutomaticDimension;
-  //self.title = @"Yelp";
-  // Do any additional setup after loading the view from its nib.
+
 }
 
-- (void) hideKeyboard {
+-(void)onFilter{
+  FiltersViewController *fvc = [[FiltersViewController alloc]init];
+  fvc.delegate = self;
+  [self presentViewController:[[UINavigationController alloc] initWithRootViewController:fvc] animated:YES completion: nil];
+}
+
+- (void)invokeFilter:(NSDictionary*)filters{
+  [self.tableView reloadData];
+  self.filters = [filters mutableCopy];
+  [self dismissViewControllerAnimated:YES completion:nil];
+  [self performSearch];
+}
+
+- (void)cancelFilter{
+  [self.tableView reloadData];
+  [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (void)hideKeyboard {
   if([self.searchBar isFirstResponder]){
     [self.view endEditing:YES];
     [self.searchBar resignFirstResponder];
@@ -94,13 +115,14 @@ NSString * const kYelpTokenSecret = @"mqtKIxMIR4iBtBPZCmCLEb-Dz3Y";
 - (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar
 {
   [searchBar resignFirstResponder];
-  // Do the search...
+  self.searchBar.showsCancelButton = NO;
+  self.filters[@"term"] = searchBar.text;
+  [self performSearch];
 }
 
 - (void)didReceiveMemoryWarning
 {
   [super didReceiveMemoryWarning];
-  // Dispose of any resources that can be recreated.
 }
 
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
@@ -111,6 +133,8 @@ NSString * const kYelpTokenSecret = @"mqtKIxMIR4iBtBPZCmCLEb-Dz3Y";
   
   BusinessCell *cell  = [tableView dequeueReusableCellWithIdentifier:@"BusinessCell"];
   cell.business = self.businesses[indexPath.row];
+  cell.selectionStyle = UITableViewCellSelectionStyleNone;
+  
   return cell;
   
 }

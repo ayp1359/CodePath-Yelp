@@ -23,7 +23,6 @@
 @implementation BusinessCell
 
 - (void)awakeFromNib {
-  // Initialization code
   self.nameLabel.preferredMaxLayoutWidth = self.nameLabel.frame.size.width;
   self.thumbImageView.layer.cornerRadius = 5.0;
   self.thumbImageView.clipsToBounds = YES;
@@ -31,8 +30,6 @@
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
   [super setSelected:selected animated:animated];
-  
-  // Configure the view for the selected state
 }
 
 -(void)setBusiness:(Business *)business{

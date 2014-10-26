@@ -19,12 +19,19 @@
     [categories enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
       [categoryNames addObject:obj[0]];
     }];
+    NSArray* allAddresses = dictionary[@"location"][@"display_address"];
+    NSString* thisAddress = allAddresses[0];
+    if ([allAddresses count]>2)
+    {
+      if(allAddresses[2]){
+        thisAddress = [thisAddress stringByAppendingString:@", "];
+        thisAddress = [thisAddress stringByAppendingString:allAddresses[2]];
+      }
+    }
+    self.address = thisAddress;
     self.categories = [categoryNames componentsJoinedByString:@", "];
     self.name = dictionary[@"name"];
     self.imageUrl = dictionary[@"image_url"];
-    NSString *street = [dictionary valueForKeyPath:@"location.address"][0];
-    NSString *neighborhood = [dictionary valueForKeyPath:@"location.neighborhoods"][0];
-    self.address = [NSString stringWithFormat:@"%@, %@",street,neighborhood];
     self.numReviews = [dictionary[@"review_count"] integerValue];
     self.ratingImageUrl = dictionary[@"rating_img_url"];
     float milesPerMeter = 0.000621371;
