@@ -32,7 +32,11 @@ Time spent: `<Number of hours spent>`
 - [ ] Implement the restaurant detail page.
 
 ### Walkthrough
+![Video Walkthrough](http://i.imgur.com/P3kW0DE.gif)
 
-![Video Walkthrough](...)
+Credits
+---------
+* GIF created with [LiceCap](http://www.cockos.com/licecap/)
+* [AFNetworking](https://github.com/AFNetworking/AFNetworking)
 
 
