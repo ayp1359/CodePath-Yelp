@@ -32,7 +32,7 @@ Time spent: `<Number of hours spent>`
 - [ ] Implement the restaurant detail page.
 
 ### Walkthrough
-![Video Walkthrough](http://i.imgur.com/P3kW0DE.gif)
+![Video Walkthrough](http://i.imgur.com/91RToAT.gif)
 
 Credits
 ---------
